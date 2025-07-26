@@ -1,2 +1,2 @@
 # PWAtest3
-PWA`no
+PWAの各種機能を実現するリポジトリ
