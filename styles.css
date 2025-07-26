@@ -1,0 +1,265 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f5f5f5;
+}
+
+.app-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-header {
+    background-color: #2196F3;
+    color: white;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.app-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.refresh-btn {
+    background-color: rgba(255,255,255,0.2);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.refresh-btn:hover {
+    background-color: rgba(255,255,255,0.3);
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 300px;
+    background-color: white;
+    border-right: 1px solid #e0e0e0;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+}
+
+.customer-list {
+    padding: 1rem;
+}
+
+.customer-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.customer-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.customer-item.selected {
+    border-color: #2196F3;
+    background-color: #f3f9ff;
+}
+
+.customer-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.customer-address {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.customer-phone {
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.map-container {
+    flex: 1;
+    position: relative;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.error {
+    color: #f44336;
+    text-align: center;
+    padding: 2rem;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+    .main-content {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: 40vh;
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .map-container {
+        height: 60vh;
+    }
+    
+    .app-header h1 {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .app-header {
+        padding: 0.75rem;
+    }
+    
+    .customer-item {
+        padding: 0.75rem;
+    }
+    
+    .sidebar {
+        height: 35vh;
+    }
+    
+    .map-container {
+        height: 65vh;
+    }
+}
+
+/* カスタムマーカー */
+.custom-marker {
+    background-color: #2196F3;
+    border: 2px solid white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+}
+
+.selected-marker {
+    background-color: #f44336;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* オフライン時のスタイル */
+.offline-banner {
+    background-color: #ff9800;
+    color: white;
+    padding: 0.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    margin-left: 1rem;
+    animation: slideIn 0.3s ease;
+}
+
+.offline-notice {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    border: 1px solid #ffeaa7;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.network-status {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.network-status.online {
+    background-color: #4caf50;
+}
+
+.network-status.offline {
+    background-color: #f44336;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* PWA インストールボタン */
+.install-prompt {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #2196F3;
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.install-prompt:hover {
+    background-color: #1976D2;
+    transform: translateY(-2px);
+}
+
+.install-prompt.hidden {
+    display: none;
+}
