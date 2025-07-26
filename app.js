@@ -5,8 +5,15 @@ class CustomerMapApp {
         this.markers = [];
         this.selectedCustomer = null;
         this.pushSubscription = null;
+        this.isNativeApp = this.detectNativeApp();
         
         this.init();
+    }
+    
+    // ネイティブアプリ内での実行を検出
+    detectNativeApp() {
+        return (window.webkit && window.webkit.messageHandlers) || 
+               navigator.userAgent.includes('CustomerMapApp');
     }
 
     async init() {
@@ -15,6 +22,12 @@ class CustomerMapApp {
         this.setupNetworkListeners();
         await this.loadCustomers();
         this.registerServiceWorker();
+        
+        // ネイティブアプリとの連携設定
+        if (this.isNativeApp) {
+            this.setupNativeBridge();
+            console.log('Native app bridge initialized');
+        }
     }
     
     setupNetworkListeners() {
@@ -310,30 +323,57 @@ class CustomerMapApp {
     async sendTestNotification() {
         if (this.pushSubscription) {
             try {
-                // 直接通知を表示（最もシンプルで確実な方法）
-                const notification = new Notification('Customer Map', {
-                    body: 'プッシュ通知が有効になりました！',
-                    icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"%3E%3Crect width="192" height="192" fill="%232196F3"/%3E%3Ctext x="96" y="96" font-family="Arial" font-size="48" fill="white" text-anchor="middle" dominant-baseline="middle"%3ECM%3C/text%3E%3C/svg%3E',
-                    tag: 'customer-map-test'
-                });
-                
-                // 通知クリック時のイベント
-                notification.onclick = function() {
-                    window.focus();
-                    notification.close();
-                };
-                
-                // 自動で閉じる
-                setTimeout(() => {
-                    notification.close();
-                }, 5000);
+                // ネイティブアプリ内の場合はSwift側に通知を委譲
+                if (this.isNativeApp && this.sendNativeNotification) {
+                    this.sendNativeNotification({
+                        title: 'Customer Map',
+                        body: 'プッシュ通知が有効になりました！',
+                        tag: 'customer-map-test'
+                    });
+                } else {
+                    // Web環境では従来の通知
+                    const notification = new Notification('Customer Map', {
+                        body: 'プッシュ通知が有効になりました！',
+                        icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"%3E%3Crect width="192" height="192" fill="%232196F3"/%3E%3Ctext x="96" y="96" font-family="Arial" font-size="48" fill="white" text-anchor="middle" dominant-baseline="middle"%3ECM%3C/text%3E%3C/svg%3E',
+                        tag: 'customer-map-test'
+                    });
+                    
+                    notification.onclick = function() {
+                        window.focus();
+                        notification.close();
+                    };
+                    
+                    setTimeout(() => {
+                        notification.close();
+                    }, 5000);
+                }
                 
                 console.log('Test notification sent successfully');
             } catch (error) {
                 console.error('Failed to send notification:', error);
-                alert('通知の表示に失敗しました: ' + error.message);
+                if (!this.isNativeApp) {
+                    alert('通知の表示に失敗しました: ' + error.message);
+                }
             }
         }
+    }
+    
+    // ネイティブアプリとの通信用メソッド
+    sendNativeNotification(data) {
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.notification) {
+            window.webkit.messageHandlers.notification.postMessage(data);
+        }
+    }
+    
+    // Swift側からの呼び出し用のグローバル関数を設定
+    setupNativeBridge() {
+        window.CustomerMapApp = this;
+        
+        // Swift側から呼び出し可能な関数
+        window.refreshCustomers = () => this.loadCustomers();
+        window.selectCustomer = (id) => this.selectCustomer(id);
+        window.getSelectedCustomer = () => this.selectedCustomer;
+        window.getAllCustomers = () => this.customers;
     }
     
     // カスタマー更新時の通知
