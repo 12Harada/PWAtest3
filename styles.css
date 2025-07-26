@@ -30,18 +30,34 @@ body {
     font-weight: 600;
 }
 
-.refresh-btn {
+.header-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.refresh-btn, .notification-btn {
     background-color: rgba(255,255,255,0.2);
     color: white;
     border: none;
     padding: 0.5rem 1rem;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s;
+    font-size: 0.9rem;
 }
 
-.refresh-btn:hover {
+.refresh-btn:hover, .notification-btn:hover {
     background-color: rgba(255,255,255,0.3);
+    transform: translateY(-1px);
+}
+
+.notification-btn.active {
+    background-color: #4caf50;
+    color: white;
+}
+
+.notification-btn.active:hover {
+    background-color: #45a049;
 }
 
 .main-content {
@@ -140,6 +156,16 @@ body {
     
     .app-header h1 {
         font-size: 1.2rem;
+    }
+    
+    .header-buttons {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .refresh-btn, .notification-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
     }
 }
 

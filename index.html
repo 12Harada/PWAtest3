@@ -6,6 +6,7 @@
     <title>Customer Map App</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2196F3">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232196F3'/%3E%3Ctext x='16' y='16' font-family='Arial' font-size='12' fill='white' text-anchor='middle' dominant-baseline='middle'%3ECM%3C/text%3E%3C/svg%3E" type="image/svg+xml">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,7 +14,10 @@
     <div class="app-container">
         <header class="app-header">
             <h1>お客様マップ</h1>
-            <button id="refreshBtn" class="refresh-btn">更新</button>
+            <div class="header-buttons">
+                <button id="notificationBtn" class="notification-btn">通知有効</button>
+                <button id="refreshBtn" class="refresh-btn">更新</button>
+            </div>
         </header>
         
         <main class="main-content">

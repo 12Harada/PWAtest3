@@ -4,6 +4,7 @@ class CustomerMapApp {
         this.customers = [];
         this.markers = [];
         this.selectedCustomer = null;
+        this.pushSubscription = null;
         
         this.init();
     }
@@ -51,6 +52,13 @@ class CustomerMapApp {
         refreshBtn.addEventListener('click', () => {
             this.loadCustomers();
         });
+        
+        const notificationBtn = document.getElementById('notificationBtn');
+        if (notificationBtn) {
+            notificationBtn.addEventListener('click', () => {
+                this.toggleNotifications();
+            });
+        }
     }
 
     async loadCustomers() {
@@ -212,15 +220,144 @@ class CustomerMapApp {
         this.selectedCustomer = null;
     }
 
-    registerServiceWorker() {
+    async registerServiceWorker() {
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js')
-                .then(registration => {
-                    console.log('ServiceWorker registered successfully:', registration);
-                })
-                .catch(error => {
-                    console.log('ServiceWorker registration failed:', error);
+            try {
+                const registration = await navigator.serviceWorker.register('./sw.js');
+                console.log('ServiceWorker registered successfully:', registration);
+                
+                // プッシュ通知の初期設定
+                await this.initializePushNotifications(registration);
+            } catch (error) {
+                console.log('ServiceWorker registration failed:', error);
+            }
+        }
+    }
+    
+    async initializePushNotifications(registration) {
+        if (!('PushManager' in window)) {
+            console.log('Push messaging is not supported');
+            return;
+        }
+        
+        // 既存の購読状態を確認
+        try {
+            this.pushSubscription = await registration.pushManager.getSubscription();
+            this.updateNotificationButtonState();
+        } catch (error) {
+            console.error('Failed to get push subscription:', error);
+        }
+    }
+    
+    async toggleNotifications() {
+        try {
+            if (this.pushSubscription) {
+                // 通知を無効にする
+                this.pushSubscription = null;
+                console.log('Notifications disabled');
+            } else {
+                // 通知許可を要求
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    // ローカル通知のみ有効化（プッシュサービスは使用しない）
+                    this.pushSubscription = { endpoint: 'local-notification-only', type: 'local' };
+                    console.log('Local notifications enabled');
+                    
+                    // テスト通知を送信
+                    await this.sendTestNotification();
+                } else {
+                    alert('通知の許可が必要です');
+                    return;
+                }
+            }
+            
+            this.updateNotificationButtonState();
+        } catch (error) {
+            console.error('Failed to toggle notifications:', error);
+            alert('通知設定の変更に失敗しました: ' + error.message);
+        }
+    }
+    
+    updateNotificationButtonState() {
+        const notificationBtn = document.getElementById('notificationBtn');
+        if (notificationBtn) {
+            if (this.pushSubscription) {
+                notificationBtn.textContent = '通知無効';
+                notificationBtn.classList.add('active');
+            } else {
+                notificationBtn.textContent = '通知有効';
+                notificationBtn.classList.remove('active');
+            }
+        }
+    }
+    
+    urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+            .replace(/-/g, '+')
+            .replace(/_/g, '/');
+        
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+    
+    async sendTestNotification() {
+        if (this.pushSubscription) {
+            try {
+                // 直接通知を表示（最もシンプルで確実な方法）
+                const notification = new Notification('Customer Map', {
+                    body: 'プッシュ通知が有効になりました！',
+                    icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"%3E%3Crect width="192" height="192" fill="%232196F3"/%3E%3Ctext x="96" y="96" font-family="Arial" font-size="48" fill="white" text-anchor="middle" dominant-baseline="middle"%3ECM%3C/text%3E%3C/svg%3E',
+                    tag: 'customer-map-test'
                 });
+                
+                // 通知クリック時のイベント
+                notification.onclick = function() {
+                    window.focus();
+                    notification.close();
+                };
+                
+                // 自動で閉じる
+                setTimeout(() => {
+                    notification.close();
+                }, 5000);
+                
+                console.log('Test notification sent successfully');
+            } catch (error) {
+                console.error('Failed to send notification:', error);
+                alert('通知の表示に失敗しました: ' + error.message);
+            }
+        }
+    }
+    
+    // カスタマー更新時の通知
+    async sendCustomerNotification(message) {
+        if (this.pushSubscription && Notification.permission === 'granted') {
+            try {
+                const notification = new Notification('Customer Map - 更新通知', {
+                    body: message,
+                    icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"%3E%3Crect width="192" height="192" fill="%232196F3"/%3E%3Ctext x="96" y="96" font-family="Arial" font-size="48" fill="white" text-anchor="middle" dominant-baseline="middle"%3ECM%3C/text%3E%3C/svg%3E',
+                    tag: 'customer-update'
+                });
+                
+                notification.onclick = function() {
+                    window.focus();
+                    notification.close();
+                };
+                
+                setTimeout(() => {
+                    notification.close();
+                }, 8000);
+                
+            } catch (error) {
+                console.error('Failed to send customer notification:', error);
+            }
         }
     }
 }
