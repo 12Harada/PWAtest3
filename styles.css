@@ -35,7 +35,7 @@ body {
     gap: 0.5rem;
 }
 
-.refresh-btn, .notification-btn {
+.refresh-btn, .notification-btn, .camera-btn {
     background-color: rgba(255,255,255,0.2);
     color: white;
     border: none;
@@ -46,7 +46,7 @@ body {
     font-size: 0.9rem;
 }
 
-.refresh-btn:hover, .notification-btn:hover {
+.refresh-btn:hover, .notification-btn:hover, .camera-btn:hover {
     background-color: rgba(255,255,255,0.3);
     transform: translateY(-1px);
 }
@@ -163,7 +163,7 @@ body {
         gap: 0.25rem;
     }
     
-    .refresh-btn, .notification-btn {
+    .refresh-btn, .notification-btn, .camera-btn {
         padding: 0.4rem 0.8rem;
         font-size: 0.8rem;
     }
@@ -288,4 +288,170 @@ body {
 
 .install-prompt.hidden {
     display: none;
+}
+
+/* カメラモーダル */
+.camera-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+}
+
+.camera-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.camera-modal-content {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1rem;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.camera-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.camera-header h3 {
+    margin: 0;
+    color: #333;
+}
+
+.close-camera-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-camera-btn:hover {
+    color: #333;
+}
+
+.camera-container {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+#cameraVideo {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    background-color: #000;
+}
+
+.camera-controls {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.capture-btn, .switch-camera-btn {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.capture-btn:hover, .switch-camera-btn:hover {
+    background-color: #1976D2;
+    transform: translateY(-1px);
+}
+
+.captured-image {
+    text-align: center;
+}
+
+#capturedImg {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.image-controls {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.save-image-btn, .retake-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.save-image-btn {
+    background-color: #4caf50;
+    color: white;
+}
+
+.save-image-btn:hover {
+    background-color: #45a049;
+}
+
+.retake-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+.retake-btn:hover {
+    background-color: #d32f2f;
+}
+
+@media (max-width: 768px) {
+    .camera-modal-content {
+        width: 95%;
+        padding: 0.75rem;
+    }
+    
+    .camera-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .capture-btn, .switch-camera-btn {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .image-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .save-image-btn, .retake-btn {
+        width: 100%;
+        max-width: 200px;
+    }
 }

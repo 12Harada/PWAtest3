@@ -19,6 +19,7 @@
         <header class="app-header">
             <h1>お客様マップ</h1>
             <div class="header-buttons">
+                <button id="cameraBtn" class="camera-btn">カメラ</button>
                 <button id="notificationBtn" class="notification-btn">通知有効</button>
                 <button id="refreshBtn" class="refresh-btn">更新</button>
             </div>
@@ -35,6 +36,31 @@
                 <div id="map"></div>
             </div>
         </main>
+        
+        <!-- カメラモーダル -->
+        <div id="cameraModal" class="camera-modal">
+            <div class="camera-modal-content">
+                <div class="camera-header">
+                    <h3>カメラ</h3>
+                    <button id="closeCameraBtn" class="close-camera-btn">&times;</button>
+                </div>
+                <div class="camera-container">
+                    <video id="cameraVideo" autoplay playsinline muted webkit-playsinline></video>
+                    <canvas id="cameraCanvas" style="display: none;"></canvas>
+                </div>
+                <div class="camera-controls">
+                    <button id="captureBtn" class="capture-btn">撮影</button>
+                    <button id="switchCameraBtn" class="switch-camera-btn">カメラ切替</button>
+                </div>
+                <div id="capturedImage" class="captured-image" style="display: none;">
+                    <img id="capturedImg" alt="撮影した画像">
+                    <div class="image-controls">
+                        <button id="saveImageBtn" class="save-image-btn">保存</button>
+                        <button id="retakeBtn" class="retake-btn">再撮影</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

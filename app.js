@@ -6,6 +6,8 @@ class CustomerMapApp {
         this.selectedCustomer = null;
         this.pushSubscription = null;
         this.isNativeApp = this.detectNativeApp();
+        this.currentStream = null;
+        this.facingMode = 'user';
         
         this.init();
     }
@@ -70,6 +72,48 @@ class CustomerMapApp {
         if (notificationBtn) {
             notificationBtn.addEventListener('click', () => {
                 this.toggleNotifications();
+            });
+        }
+        
+        const cameraBtn = document.getElementById('cameraBtn');
+        if (cameraBtn) {
+            cameraBtn.addEventListener('click', () => {
+                this.openCamera();
+            });
+        }
+        
+        const closeCameraBtn = document.getElementById('closeCameraBtn');
+        if (closeCameraBtn) {
+            closeCameraBtn.addEventListener('click', () => {
+                this.closeCamera();
+            });
+        }
+        
+        const captureBtn = document.getElementById('captureBtn');
+        if (captureBtn) {
+            captureBtn.addEventListener('click', () => {
+                this.capturePhoto();
+            });
+        }
+        
+        const switchCameraBtn = document.getElementById('switchCameraBtn');
+        if (switchCameraBtn) {
+            switchCameraBtn.addEventListener('click', () => {
+                this.switchCamera();
+            });
+        }
+        
+        const saveImageBtn = document.getElementById('saveImageBtn');
+        if (saveImageBtn) {
+            saveImageBtn.addEventListener('click', () => {
+                this.saveImage();
+            });
+        }
+        
+        const retakeBtn = document.getElementById('retakeBtn');
+        if (retakeBtn) {
+            retakeBtn.addEventListener('click', () => {
+                this.retakePhoto();
             });
         }
     }
@@ -374,6 +418,212 @@ class CustomerMapApp {
         window.selectCustomer = (id) => this.selectCustomer(id);
         window.getSelectedCustomer = () => this.selectedCustomer;
         window.getAllCustomers = () => this.customers;
+    }
+    
+    async openCamera() {
+        try {
+            // HTTPSチェック（iOSでは必須）
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                alert('カメラを使用するにはHTTPS接続が必要です。ngrokを使用してHTTPS環境でアクセスしてください。');
+                return;
+            }
+            
+            const modal = document.getElementById('cameraModal');
+            const video = document.getElementById('cameraVideo');
+            const capturedImage = document.getElementById('capturedImage');
+            const cameraControls = document.querySelector('.camera-controls');
+            
+            modal.classList.add('active');
+            capturedImage.style.display = 'none';
+            video.style.display = 'block';
+            cameraControls.style.display = 'flex';
+            
+            // iOSでのユーザージェスチャーが必要な場合の対処
+            video.muted = true;
+            video.playsInline = true;
+            
+            await this.startCamera();
+            
+        } catch (error) {
+            console.error('カメラの起動に失敗しました:', error);
+            alert('カメラの起動に失敗しました: ' + error.message);
+            this.closeCamera();
+        }
+    }
+    
+    async startCamera() {
+        try {
+            if (this.currentStream) {
+                this.currentStream.getTracks().forEach(track => track.stop());
+            }
+            
+            // モバイルデバイス検出
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            let constraints;
+            if (isMobile) {
+                // モバイルデバイス用の制約
+                constraints = {
+                    video: {
+                        facingMode: this.facingMode,
+                        width: { ideal: 640, max: 1280 },
+                        height: { ideal: 480, max: 720 }
+                    },
+                    audio: false
+                };
+            } else {
+                // デスクトップ用の制約
+                constraints = {
+                    video: {
+                        facingMode: this.facingMode,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                };
+            }
+            
+            // ブラウザ対応チェック
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('このブラウザではカメラがサポートされていません。');
+            }
+            
+            this.currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+            const video = document.getElementById('cameraVideo');
+            video.srcObject = this.currentStream;
+            
+            // ビデオの読み込み完了を待つ
+            return new Promise((resolve, reject) => {
+                video.onloadedmetadata = () => {
+                    video.play().then(resolve).catch(reject);
+                };
+                video.onerror = () => {
+                    reject(new Error('ビデオの読み込みに失敗しました。'));
+                };
+            });
+            
+        } catch (error) {
+            console.error('Camera error:', error);
+            let errorMessage = 'カメラの起動に失敗しました。';
+            
+            if (error.name === 'NotAllowedError') {
+                errorMessage = 'カメラのアクセス許可が必要です。ブラウザの設定でカメラを許可してください。';
+            } else if (error.name === 'NotFoundError') {
+                errorMessage = 'カメラが見つかりません。デバイスにカメラが接続されているか確認してください。';
+            } else if (error.name === 'NotReadableError') {
+                errorMessage = 'カメラが他のアプリケーションで使用されている可能性があります。';
+            } else if (error.name === 'OverconstrainedError') {
+                errorMessage = 'カメラの設定が無効です。別の設定で再試行します。';
+            }
+            
+            throw new Error(errorMessage);
+        }
+    }
+    
+    closeCamera() {
+        const modal = document.getElementById('cameraModal');
+        modal.classList.remove('active');
+        
+        if (this.currentStream) {
+            this.currentStream.getTracks().forEach(track => track.stop());
+            this.currentStream = null;
+        }
+        
+        const video = document.getElementById('cameraVideo');
+        video.srcObject = null;
+        
+        const capturedImage = document.getElementById('capturedImage');
+        capturedImage.style.display = 'none';
+    }
+    
+    capturePhoto() {
+        try {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('cameraCanvas');
+            const capturedImg = document.getElementById('capturedImg');
+            const capturedImage = document.getElementById('capturedImage');
+            
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+            capturedImg.src = dataURL;
+            capturedImage.style.display = 'block';
+            
+            video.style.display = 'none';
+            document.querySelector('.camera-controls').style.display = 'none';
+            
+        } catch (error) {
+            console.error('写真の撮影に失敗しました:', error);
+            alert('写真の撮影に失敗しました: ' + error.message);
+        }
+    }
+    
+    async switchCamera() {
+        try {
+            // カメラの切り替えを試行
+            this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
+            await this.startCamera();
+        } catch (error) {
+            console.error('カメラの切り替えに失敗しました:', error);
+            // 元のカメラモードに戻す
+            this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
+            
+            // フォールバック: 基本的な制約で再試行
+            try {
+                if (this.currentStream) {
+                    this.currentStream.getTracks().forEach(track => track.stop());
+                }
+                
+                const basicConstraints = {
+                    video: true,
+                    audio: false
+                };
+                
+                this.currentStream = await navigator.mediaDevices.getUserMedia(basicConstraints);
+                const video = document.getElementById('cameraVideo');
+                video.srcObject = this.currentStream;
+                
+                await new Promise((resolve, reject) => {
+                    video.onloadedmetadata = () => {
+                        video.play().then(resolve).catch(reject);
+                    };
+                });
+                
+            } catch (fallbackError) {
+                alert('カメラの切り替えに失敗しました: ' + error.message);
+            }
+        }
+    }
+    
+    saveImage() {
+        try {
+            const capturedImg = document.getElementById('capturedImg');
+            const dataURL = capturedImg.src;
+            
+            const link = document.createElement('a');
+            link.download = `customer-photo-${new Date().getTime()}.jpg`;
+            link.href = dataURL;
+            link.click();
+            
+            this.closeCamera();
+            
+        } catch (error) {
+            console.error('画像の保存に失敗しました:', error);
+            alert('画像の保存に失敗しました: ' + error.message);
+        }
+    }
+    
+    retakePhoto() {
+        const video = document.getElementById('cameraVideo');
+        const capturedImage = document.getElementById('capturedImage');
+        
+        video.style.display = 'block';
+        document.querySelector('.camera-controls').style.display = 'flex';
+        capturedImage.style.display = 'none';
     }
     
     // カスタマー更新時の通知

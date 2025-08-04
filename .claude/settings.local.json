@@ -4,7 +4,10 @@
       "Bash(python3:*)",
       "Bash(pkill:*)",
       "Bash(php:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(brew install:*)",
+      "Bash(npx http-server:*)",
+      "Bash(openssl req:*)"
     ],
     "deny": []
   }
